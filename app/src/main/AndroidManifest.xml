@@ -43,6 +43,9 @@
             android:label="@string/title_activity_maps">
 
         </activity>
+        <activity android:name=".HighwayCameraListActivity" />
+        <activity android:name=".HighwayCameraViewActivity" />
+        <activity android:name=".OwnRoutesCreationActivity"></activity>
     </application>
 
 </manifest>
