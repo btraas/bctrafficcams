@@ -15,6 +15,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".HighwayCameraListActivity" />
+        <activity android:name=".HighwayCameraViewActivity" />
+        <activity android:name=".OwnRoutesCreationActivity"></activity>
     </application>
 
 </manifest>
