@@ -15,6 +15,7 @@ public class OwnRoutesCreationActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate begin");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_own_routes_creation);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         returnButton = (ImageButton)findViewById(R.id.returnButton);
         Log.d(TAG, "onCreate end");
     }

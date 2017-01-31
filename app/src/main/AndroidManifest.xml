@@ -43,9 +43,20 @@
             android:label="@string/title_activity_maps">
 
         </activity>
-        <activity android:name=".HighwayCameraListActivity" />
+        <activity android:name=".HighwayCameraListActivity"
+            android:parentActivityName="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
+                />
+        </activity>
         <activity android:name=".HighwayCameraViewActivity" />
-        <activity android:name=".OwnRoutesCreationActivity"></activity>
+        <activity android:name=".OwnRoutesCreationActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
+                />
+        </activity>
     </application>
 
 </manifest>
