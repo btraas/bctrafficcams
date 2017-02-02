@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="camera_list_array_temp">
+        <item>
+            Temporary Camera 1
+        </item>
+        <item>
+            Temporary Camera 2
+        </item>
+        <item>
+            Temporary Camera 3
+        </item>
+        <item>
+            Temporary Camera 4
+        </item>
+        <item>
+            Temporary Camera 5
+        </item>
+        <item>
+            Temporary Camera 6
+        </item>
+        <item>
+            Temporary Camera 7
+        </item>
+        <item>
+            Temporary Camera 8
+        </item>
+        <item>
+            Temporary Camera 9
+        </item>
+        <item>
+            Temporary Camera 10
+        </item>
+    </string-array>
+
+</resources>
