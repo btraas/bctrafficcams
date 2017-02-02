@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
 
+        mapFragment.getMapAsync(this);
 
         Log.d(TAG, "onCreate end");
 
@@ -75,6 +76,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         LatLng start = new LatLng(49.2189, -122.9177);
         mMap.addMarker(new MarkerOptions().position(start).title("New West"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+
     }
 
 
