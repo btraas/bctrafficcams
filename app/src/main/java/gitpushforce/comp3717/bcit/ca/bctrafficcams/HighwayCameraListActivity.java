@@ -11,7 +11,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
+//import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
 
 public class HighwayCameraListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{

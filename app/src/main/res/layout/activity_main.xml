@@ -49,4 +49,14 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true" />
 
+    <Button
+        android:text="Test Cache"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/ownRoutesCreateButton"
+        android:onClick="processCaches"
+        android:id="@+id/cache"
+        style="@style/Widget.AppCompat.Button.Colored" />
+
 </RelativeLayout>

@@ -1,10 +1,12 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -12,6 +14,11 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -61,7 +68,46 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public void processCaches(final View view) {
         Log.d(TAG, "processCaches begin");
-        //NewWestDataset data = new NewWestDataset()
+        //NewWestDataset data = new NewWestDataset("webcam-links", getApplicationContext());
+        //data.execute("WEBCAM_LINKS.csv");
+
+        String name = "WEBCAM_LINKS.csv";
+
+        AssetManager assetManager = getResources().getAssets();
+        InputStream inputStream = null;
+        try {
+            inputStream = assetManager.open(name);
+            if ( inputStream != null)
+                Log.d(TAG, "It worked!");
+
+            InputStreamReader read = new InputStreamReader(inputStream);
+
+            StringBuilder firstChars = new StringBuilder();
+
+            int ch = read.read();
+
+            int i = 0;
+            while (ch != -1 && firstChars.length() < 30) {
+                i++;
+                Log.d(TAG, "got "+(char)ch);
+                firstChars.append((char)ch);
+                ch = read.read();
+
+            }
+
+            Log.d(TAG, "got "+i + "chars: "+firstChars);
+
+            read.close();
+            inputStream.close();
+
+            Toast.makeText(this.getApplicationContext(), name + ": " + firstChars + "...", Toast.LENGTH_LONG).show();
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+
     }
 
     /**
