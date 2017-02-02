@@ -59,6 +59,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+    public void processCaches(final View view) {
+        Log.d(TAG, "processCaches begin");
+        //NewWestDataset data = new NewWestDataset()
+    }
+
     /**
      * Manipulates the map once available.
      * This callback is triggered when the map is ready to be used.
@@ -78,6 +83,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
 
     }
+
 
 
 }
