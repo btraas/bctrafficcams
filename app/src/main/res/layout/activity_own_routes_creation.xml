@@ -11,7 +11,7 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.OwnRoutesCreationActivity">
 
-    <ImageButton
+    <!--<ImageButton
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:srcCompat="?attr/actionModeCloseDrawable"
@@ -20,6 +20,7 @@
         android:layout_marginStart="17dp"
         android:layout_marginTop="20dp"
         android:id="@+id/returnButton" />
+-->
 
     <EditText
         android:layout_width="wrap_content"
@@ -27,7 +28,6 @@
         android:inputType="textPersonName"
         android:text="From Location"
         android:ems="10"
-        android:layout_below="@+id/returnButton"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="27dp"
         android:id="@+id/fromEditText" />
@@ -36,7 +36,6 @@
         android:text="From"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/returnButton"
         android:layout_toStartOf="@+id/fromEditText"
         android:id="@+id/textView3" />
 

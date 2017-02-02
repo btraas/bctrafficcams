@@ -43,7 +43,7 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.MapsActivity" />
+        tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity" />
 
 
 

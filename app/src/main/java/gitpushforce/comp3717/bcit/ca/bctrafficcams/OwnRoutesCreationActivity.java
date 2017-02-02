@@ -9,14 +9,14 @@ import android.widget.ImageButton;
 public class OwnRoutesCreationActivity extends AppCompatActivity {
 
     public static final String TAG = OwnRoutesCreationActivity.class.getName();
-    private ImageButton returnButton;
+   // private ImageButton returnButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate begin");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_own_routes_creation);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        returnButton = (ImageButton)findViewById(R.id.returnButton);
+       // returnButton = (ImageButton)findViewById(R.id.returnButton);
         Log.d(TAG, "onCreate end");
     }
 
@@ -25,12 +25,12 @@ public class OwnRoutesCreationActivity extends AppCompatActivity {
     {
         Log.d(TAG, "onStart begin");
         super.onStart();
-        returnButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                finish();
-            }
-        });
+       // returnButton.setOnClickListener(new View.OnClickListener() {
+       //     @Override
+       //     public void onClick(View v) {
+       //         finish();
+       //     }
+       // });
         Log.d(TAG, "onStart end");
     }
 }
