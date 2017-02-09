@@ -22,13 +22,13 @@ import static android.R.attr.data;
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
 
-public class HighwayCameraListActivity extends AppCompatActivity implements AdapterView.OnItemClickListener{
+public class HighwayCameraListActivity extends AppCompatActivity {
 
     public static final String TAG = HighwayCameraListActivity.class.getName();
     private ListView listView;
     private ArrayList<HighwayCameraListDataModel> dataModels;
     private int side = 100;
-    private static HighwayListCustomAdapter adapter;
+    private HighwayListCustomAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,6 +67,9 @@ public class HighwayCameraListActivity extends AppCompatActivity implements Adap
                 HighwayCameraListDataModel dataModel = dataModels.get(position);
                 Snackbar.make(view, dataModel.getCameraName(), Snackbar.LENGTH_LONG)
                         .setAction("No action", null).show();
+                final Intent intent;
+                intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
+                startActivity(intent);
             }
         });
         Log.d(TAG, "onCreate end");
@@ -76,18 +79,5 @@ public class HighwayCameraListActivity extends AppCompatActivity implements Adap
     {   Log.d(TAG, "onStart begin");
         super.onStart();
         Log.d(TAG, "onStart end");
-    }
-
-    @Override
-    public void onItemClick(AdapterView<?> adapter, final View view, int position, long id)
-    {
-        Log.d(TAG, "onItemClick begin");
-        Toast.makeText(getApplicationContext(),
-                ((TextView)view).getText(),
-                Toast.LENGTH_SHORT).show();
-        final Intent intent;
-        intent = new Intent(this, HighwayCameraViewActivity.class);
-        startActivity(intent);
-        Log.d(TAG, "onItemClick end");
     }
 }
