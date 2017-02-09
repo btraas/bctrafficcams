@@ -1,6 +1,8 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -62,7 +64,7 @@ public class HighwayListCustomAdapter extends ArrayAdapter<HighwayCameraListData
     @Override
     public View getView(int position, View convertView, ViewGroup parent)
     {
-        HighwayCameraListDataModel dataModel = (HighwayCameraListDataModel)(Object) getItem(position);
+        HighwayCameraListDataModel dataModel = getItem(position);
         ViewHolder viewHolder;
         final View result;
 
@@ -86,8 +88,17 @@ public class HighwayListCustomAdapter extends ArrayAdapter<HighwayCameraListData
         //result.startAnimation (animation);
         lastPosition = position;
 
+        /*
+        ImageView iv = (ImageView)findViewById(R.id.camera_image);
+        Bitmap bMap = BitmapFactory.decodeResource(getResources(), R.drawable.picture);
+        Bitmap bMapScaled = Bitmap.createScaledBitmap(bMap, newWidth, newHeight, true);
+        iv.setImageBitmap(bMapScaled);
+        */
         viewHolder.txtCameraName.setText(dataModel.getCameraName());
+        viewHolder.cameraImage.setImageBitmap(dataModel.getThumbnail());
         viewHolder.cameraImage.setOnClickListener(this);
+        viewHolder.cameraImage.setVisibility(View.VISIBLE);
+
         viewHolder.cameraImage.setTag(position);
 
         return convertView;
