@@ -117,18 +117,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
-    private LatLng getLocationFromAddress(String addr) throws IOException {
-        Geocoder coder = new Geocoder(getApplicationContext());
-        List<Address> address;
-
-        address = coder.getFromLocationName(addr,5);
-        if (address==null || address.size() == 0) {
-            throw new IOException("Address lookup failed");
-        }
-        Address location=address.get(0);
-
-        return new LatLng(location.getLatitude(), location.getLongitude());
-    }
 
 
     /**
@@ -147,7 +135,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         // Add a marker in Sydney and move the camera
         LatLng start = new LatLng(49.2189, -122.9177);
 
-
+        //(new LoadPinsJob(mMap)).execute();
 
         /*
             TODO TOO SLOW
@@ -173,12 +161,87 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //mMap.addMarker(new MarkerOptions().position(start).title("New West"));
 
 
+        Cursor cameras = openHelper.getRows(getApplicationContext());
 
+        cameras.moveToFirst();
+        int failed = 0;
+        while(cameras.moveToNext())
+        {
+            try {
+                String name     = cameras.getString(cameras.getColumnIndex("camera_name"));
+                LatLng location = new LatLng(
+                        Double.parseDouble(cameras.getString(cameras.getColumnIndex("latitude"))),
+                        Double.parseDouble(cameras.getString(cameras.getColumnIndex("longitude")))
+                );
+                mMap.addMarker(new MarkerOptions().position(location).title(name));
+            } catch(Exception e) {
+                // do nothing
+                failed++;
+            }
+        }
+        Log.e(TAG,"failed cameras: "+failed);
 
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
 
     }
+
+    private class LoadPinsJob extends AsyncTask<String, Void, Bundle> {
+
+        private GoogleMap map;
+        public LoadPinsJob(GoogleMap map) {
+            this.map = map;
+        }
+
+        @Override
+        protected Bundle doInBackground(String[] params) {
+
+
+            Bundle b = new Bundle();
+            b.putInt("result", 0);
+
+
+            Cursor cameras = openHelper.getRows(getApplicationContext());
+
+            cameras.moveToFirst();
+            int failed = 0;
+            while(cameras.moveToNext())
+            {
+                try {
+                    String name     = cameras.getString(cameras.getColumnIndex("camera_name"));
+                    LatLng location = new LatLng(
+                                    Double.parseDouble(cameras.getString(cameras.getColumnIndex("latitude"))),
+                                    Double.parseDouble(cameras.getString(cameras.getColumnIndex("longitude")))
+                    );
+                    map.addMarker(new MarkerOptions().position(location).title(name));
+                } catch(Exception e) {
+                    // do nothing
+                    failed++;
+                }
+            }
+            Log.e(TAG,"failed cameras: "+failed);
+
+            return b;
+
+        }
+
+        @Override
+        protected void onPostExecute(Bundle b) {
+            String message = b.getString("msg");
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            //findViewById(R.id.sync_button).clearAnimation();
+
+            Log.d(TAG, "updated = "+b.getInt("updated"));
+
+            // if(b.getInt("updated") > 0)
+            // {
+            //finish();
+            //startActivity(getIntent()); // show changes
+            //  }
+
+        }
+    }
+
 
     //HAMBURGER MENU STUFF
     //

@@ -17,8 +17,8 @@ public final class CamerasOpenHelper
     private static final String DB_NAME = "cams.db";
     private static final String TABLE_NAME = "cams";
     private static final String ID_COLUMN_NAME = "_id";
-    private static final String[] COLUMNS = {"camera_name", "camera_link"};
-    private static final String[] COLUMN_TYPES = new String[] {"TEXT NOT NULL", "TEXT NOT NULL"};
+    private static final String[] COLUMNS = {"camera_name", "camera_link", "latitude", "longitude"};
+    private static final String[] COLUMN_TYPES = new String[] {"TEXT NOT NULL", "TEXT NOT NULL", "TEXT NOT NULL", "TEXT NOT NULL"};
 
     public CamerasOpenHelper(final Context ctx)
     {

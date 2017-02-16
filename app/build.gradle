@@ -30,5 +30,6 @@ dependencies {
     compile 'com.android.support:design:25.1.1'
     testCompile 'junit:junit:4.12'
     compile 'org.jsoup:jsoup:1.10.2'
+    compile 'net.sf.opencsv:opencsv:2.3'
     compile 'com.android.support:multidex:1.0.1'
 }

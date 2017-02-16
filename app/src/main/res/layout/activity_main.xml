@@ -25,7 +25,7 @@
         android:layout_height="match_parent"
         map:cameraTargetLat="49.2189"
         map:cameraTargetLng="-122.9177"
-        map:cameraZoom="12"
+        map:cameraZoom="11"
         tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
         android:layout_alignParentBottom="true" />
     <!--

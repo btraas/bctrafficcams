@@ -9,6 +9,8 @@ import android.util.Log;
 import android.widget.ImageView;
 
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
@@ -25,8 +27,9 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         //returnButton = (ImageButton)findViewById(R.id.returnButton);
 
         String link = getIntent().getStringExtra("link");
+        Log.d(TAG, "recieved image link: "+link);
 
-        new DownloadImageTask((ImageView) findViewById(R.id.camera_image))
+        new DownloadImageTask((ImageView) findViewById(R.id.imageView))
                 .execute(link);
 
 
@@ -55,6 +58,8 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
             this.bmImage = bmImage;
         }
 
+
+
         protected Bitmap doInBackground(String... urls) {
             String urldisplay = urls[0];
             Bitmap mIcon11 = null;
@@ -69,7 +74,8 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         }
 
         protected void onPostExecute(Bitmap result) {
-            if(bmImage != null) bmImage.setImageBitmap(result);
+            bmImage.setImageBitmap(result);
+
         }
     }
 
