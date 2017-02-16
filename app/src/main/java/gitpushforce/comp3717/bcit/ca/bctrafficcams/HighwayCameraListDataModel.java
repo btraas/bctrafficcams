@@ -10,12 +10,13 @@ public class HighwayCameraListDataModel {
 
     private String cameraName;
     private Bitmap thumbnail;
+    private String imageLink;
 
-    public HighwayCameraListDataModel (String cameraName, Bitmap thumbnail)
+    public HighwayCameraListDataModel (String cameraName, Bitmap thumbnail, String imageLink)
     {
         this.cameraName = cameraName;
         this.thumbnail = thumbnail;
-
+        this.imageLink = imageLink;
     }
 
     public String getCameraName()
@@ -27,5 +28,7 @@ public class HighwayCameraListDataModel {
     {
         return thumbnail;
     }
+
+    public String getImageLink() { return imageLink; }
 
 }

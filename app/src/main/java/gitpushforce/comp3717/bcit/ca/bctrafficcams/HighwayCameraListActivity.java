@@ -73,8 +73,9 @@ public class HighwayCameraListActivity extends AppCompatActivity {
             //name = cursor.get
             name = dbData.getString(dbData.getColumnIndex("camera_name"));
             String id   = dbData.getString(dbData.getColumnIndex("_id"));
+            String link = dbData.getString(dbData.getColumnIndex("camera_link"));
 
-            dataModels.add(new HighwayCameraListDataModel(name, bMapScaled));
+            dataModels.add(new HighwayCameraListDataModel(name, bMapScaled, link));
 
 
             Log.d(TAG, id + "-" + name);
@@ -93,6 +94,8 @@ public class HighwayCameraListActivity extends AppCompatActivity {
                         .setAction("No action", null).show();
                 final Intent intent;
                 intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
+                intent.putExtra("name", dataModel.getCameraName());
+                intent.putExtra("link", dataModel.getImageLink());
                 startActivity(intent);
             }
         });

@@ -215,6 +215,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 viewRoutes();
                 break;
             case 2:
+                Toast.makeText(getApplicationContext(), "Downloading data...", Toast.LENGTH_LONG).show();
                 (new SyncJob()).execute();
         }
 
