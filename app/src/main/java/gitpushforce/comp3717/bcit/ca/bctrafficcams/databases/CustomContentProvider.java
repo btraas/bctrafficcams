@@ -8,8 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.util.Log;
 
-import a00968178.comp3717.bcit.ca.opendata.CategoriesOpenHelper;
-import a00968178.comp3717.bcit.ca.opendata.DatasetsOpenHelper;
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.CamerasOpenHelper;
 
 public class CustomContentProvider
     extends ContentProvider
@@ -17,17 +16,15 @@ public class CustomContentProvider
     private static final String TAG = CustomContentProvider.class.getName();
     private static final UriMatcher uriMatcher;
 
-    //public static final String BASE_CONTENT_URI = "content://comp3717.bcit.ca.database/";
+    //public static final String BASE_CONTENT_URI = "content://gitpushforce.comp3717.bcit.ca.bctrafficcams/";
 
     private static final String INVALID_URI = "Unsupported Custom URI: ";
 
     //private static final String TABLE_NAME = CamerasOpenHelper.NAME_TABLE_NAME;
 
-    private static final int CATEGORIES_URI = 0;
-    private static final int DATASETS_URI = 1;
-    private static final String[] TABLES = {"categories", "datasets"};
-    private OpenHelper categoriesHelper;
-    private OpenHelper datasetsHelper;
+    private static final int CAMERAS_URI = 0;
+    private static final String[] TABLES = {"cameras"};
+    private OpenHelper helper;
 
     static
     {
@@ -35,7 +32,7 @@ public class CustomContentProvider
 
 
         for(int i = 0; i < TABLES.length; i++) {
-            uriMatcher.addURI("a00968178.comp3717.bcit.ca.opendata", TABLES[i], i);
+            uriMatcher.addURI("gitpushforce.comp3717.bcit.ca.bctrafficcams", TABLES[i], i);
         }
     }
 
@@ -48,9 +45,7 @@ public class CustomContentProvider
     public boolean onCreate()
     {
         //namesOpenHelper = CamerasOpenHelper.getInstance(getContext());
-        categoriesHelper = new CategoriesOpenHelper(getContext());
-        datasetsHelper   = new DatasetsOpenHelper(getContext());
-
+        helper = new CamerasOpenHelper(getContext());
         return true;
     }
 
@@ -72,21 +67,13 @@ public class CustomContentProvider
 
         switch (uriMatcher.match(uri))
         {
-            case CATEGORIES_URI:
+
+            case CAMERAS_URI:
             {
                 final SQLiteDatabase db;
 
-                db     = categoriesHelper.getWritableDatabase();
-                //cursor = categoriesHelper.dumpTable(getContext());
-                cursor = categoriesHelper.getRows(getContext(), projection, selection, selectionArgs, null, null, sortOrder, null);
-                break;
-            }
-            case DATASETS_URI:
-            {
-                final SQLiteDatabase db;
-
-                db     = datasetsHelper.getWritableDatabase();
-                cursor = datasetsHelper.getRows(getContext(), projection, selection, selectionArgs, null, null, sortOrder, null);
+                db     = helper.getWritableDatabase();
+                cursor = helper.getRows(getContext(), projection, selection, selectionArgs, null, null, sortOrder, null);
                 break;
             }
             //case CATEGORY_DATASETS_URI:
@@ -108,11 +95,8 @@ public class CustomContentProvider
 
         switch(uriMatcher.match(uri))
         {
-            case CATEGORIES_URI:
-                type = "vnd.android.cursor.dir/vnd.a00968178.comp3717.bcit.ca.opendata."+categoriesHelper.getDatabaseName();
-                break;
-            case DATASETS_URI:
-                type = "vnd.android.cursor.dir/vnd.a00968178.comp3717.bcit.ca.opendata."+datasetsHelper.getDatabaseName();
+            case CAMERAS_URI:
+                type = "vnd.android.cursor.dir/vnd.gitpushforce.comp3717.bcit.ca.bctrafficcams."+helper.getDatabaseName();
                 break;
 
             default:
