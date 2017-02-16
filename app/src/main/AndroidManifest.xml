@@ -57,6 +57,15 @@
                 android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
                 />
         </activity>
+        <activity
+            android:name=".Navigation"
+            android:label="@string/title_activity_navigation"
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity" />
+        </activity>
     </application>
 
 </manifest>

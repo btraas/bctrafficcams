@@ -87,6 +87,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         Log.d(TAG, "viewCameraList end");
     }
 
+    public void viewRoutes()
+    {
+        Log.d(TAG, "viewRoutes begin");
+        final Intent intent;
+
+        intent = new Intent(this, RoutesActivity.class);
+        startActivity(intent);
+        Log.d(TAG, "viewRoutes end");
+    }
+
     public void goOwnRoutesCreate()
     {
         Log.d(TAG, "goOwnRoutesCreate begin");
@@ -148,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //add menu items here
         mNavItems.add(new NavItem("Highway Cameras", "Check out the different highway cameras", R.drawable.ic_expand));
-        mNavItems.add(new NavItem("Create Route", "Create your own routes and see traffic adjusted travel time", R.drawable.ic_expand));
+        mNavItems.add(new NavItem("Routes", "Choose route and see traffic adjusted travel time", R.drawable.ic_expand));
         mNavItems.add(new NavItem("test cache", "This does something", R.drawable.ic_expand));
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
@@ -174,7 +184,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 viewCamerasList();
                 break;
             case 1:
-                goOwnRoutesCreate();
+                viewRoutes();
                 break;
             case 2:
                 (new SyncJob()).execute();
