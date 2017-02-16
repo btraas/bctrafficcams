@@ -59,7 +59,11 @@
                 android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
                 />
         </activity>
-
+        <activity android:name=".RoutesActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity" />
+        </activity>
 
     </application>
 
