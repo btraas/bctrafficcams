@@ -28,8 +28,3 @@
     />
 
 </RelativeLayout>
-<?php
-    /*
-    android:src="@android:drawable/ic_dialog_info" />
-    */
-    ?>
