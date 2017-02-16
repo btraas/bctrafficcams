@@ -3,6 +3,9 @@ package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
+import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -16,6 +19,7 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
+import android.widget.SimpleCursorAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +36,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.NoChangeException;
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
+
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
@@ -44,6 +51,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     RelativeLayout mDrawerPane;
     private ActionBarDrawerToggle mDrawerToggle;
     private DrawerLayout mDrawerLayout;
+    private ListView listView;
+    private OpenHelper     openHelper;
+    private SimpleCursorAdapter adapter;
+
 
     ArrayList<NavItem> mNavItems = new ArrayList<NavItem>();
 
@@ -87,46 +98,28 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    public void processCaches() {
-        Log.d(TAG, "processCaches begin");
-        //NewWestDataset data = new NewWestDataset("webcam-links", getApplicationContext());
-        //data.execute("WEBCAM_LINKS.csv");
+    private void init() {
+        final SQLiteDatabase db;
+        final long numEntries;
+        final LoaderManager manager;
 
-        String name = "WEBCAM_LINKS.csv";
+        OpenHelper openHelper = new CamerasOpenHelper(getApplicationContext());
 
-        AssetManager assetManager = getResources().getAssets();
-        InputStream inputStream = null;
-        try {
-            inputStream = assetManager.open(name);
-            if ( inputStream != null)
-                Log.d(TAG, "It worked!");
+        adapter = new CustomAdapter(getBaseContext(),
+                R.layout.highway_camera_list_row_item,
+                openHelper.getRows(getApplicationContext()),
+                new String[]
+                        {
+                                CamerasOpenHelper.NAME_COLUMN,
+                        },
+                new int[]
+                        {
+                                android.R.id.text1,
+                        }
+        );
 
-            InputStreamReader read = new InputStreamReader(inputStream);
+        listView.setAdapter(adapter);
 
-            StringBuilder firstChars = new StringBuilder();
-
-            int ch = read.read();
-
-            int i = 0;
-            while (ch != -1 && firstChars.length() < 30) {
-                i++;
-                Log.d(TAG, "got "+(char)ch);
-                firstChars.append((char)ch);
-                ch = read.read();
-
-            }
-
-            Log.d(TAG, "got "+i + "chars: "+firstChars);
-
-            read.close();
-            inputStream.close();
-
-            Toast.makeText(this.getApplicationContext(), name + ": " + firstChars + "...", Toast.LENGTH_LONG).show();
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -184,7 +177,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 goOwnRoutesCreate();
                 break;
             case 2:
-                processCaches();
+                (new SyncJob()).execute();
         }
 
     }
@@ -201,6 +194,59 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             int mIcon = icon;
         }
     }
+
+
+
+    private class SyncJob extends AsyncTask<String, Void, Bundle> {
+
+        @Override
+        protected Bundle doInBackground(String[] params) {
+
+
+            Bundle b = new Bundle();
+            b.putInt("result", 0);
+
+
+            OpenHelper helper = new CamerasOpenHelper(getApplicationContext());
+
+            int result, updated = 0;
+            int datasets = (int)helper.getNumberOfRows();
+
+            try {
+                (new DatabaseBuilder(getApplicationContext())).sync();
+                updated = (int)helper.getNumberOfRows() - datasets;
+
+                if(updated == 0) b.putString("msg", "Already up-to-date");
+                else b.putString("msg", "Success: Updated "+updated+" cameras");
+            } catch(NoChangeException e) {
+                b.putString("msg", e.getMessage());
+            } catch (IOException e) {
+                b.putString("msg", "Error: " + e.getMessage());
+            }
+
+
+
+            b.putInt("updated", updated);
+            return b;
+        }
+
+        @Override
+        protected void onPostExecute(Bundle b) {
+            String message = b.getString("msg");
+            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+            //findViewById(R.id.sync_button).clearAnimation();
+
+            Log.d(TAG, "updated = "+b.getInt("updated"));
+
+            if(b.getInt("updated") > 0)
+            {
+                finish();
+                startActivity(getIntent()); // show changes
+            }
+
+        }
+    }
+
 
     //Adapter inner class with modified methods
     class DrawerListAdapter extends BaseAdapter {
@@ -252,5 +298,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
     //
     //END OF MENU STUFF
+
 
 }
