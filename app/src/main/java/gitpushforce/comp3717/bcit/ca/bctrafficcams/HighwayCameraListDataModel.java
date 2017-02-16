@@ -1,7 +1,6 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 
 /**
  * Created by arroy on 2017-02-08.

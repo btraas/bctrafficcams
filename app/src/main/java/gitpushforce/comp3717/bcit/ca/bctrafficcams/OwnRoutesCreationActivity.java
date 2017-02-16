@@ -1,10 +1,8 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.view.View;
-import android.widget.ImageButton;
 
 public class OwnRoutesCreationActivity extends AppCompatActivity {
 

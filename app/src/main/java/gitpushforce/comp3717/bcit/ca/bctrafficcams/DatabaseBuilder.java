@@ -2,14 +2,11 @@ package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 
 import android.content.Context;
-import android.content.res.Resources;
 import android.database.Cursor;
-import android.database.CursorIndexOutOfBoundsException;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
@@ -17,7 +14,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.*;
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.NoChangeException;
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 
 
 /**
@@ -114,7 +112,7 @@ public final class DatabaseBuilder {
                 HashMap<String, String> hm = new HashMap<String, String>();
                 hm.put("_id", ""+(++cameraCount));
                 hm.put("camera_name", name);
-                hm.put("camera_url", ""+link);
+                hm.put("camera_link", ""+link);
                 helper.insert(camDB, hm);
                 //helper.insert(helper.getWritableDatabase(), )
 

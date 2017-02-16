@@ -177,15 +177,17 @@ public abstract class OpenHelper
 
 
 
-    public void deleteTable() {
+    public void deleteTable()  {
+
         SQLiteDatabase db = getWritableDatabase();
 
         String SQL = "DROP TABLE IF EXISTS "+this.tableName;
                 Log.d(TAG, "Executing SQL: " + SQL);
         db.execSQL(SQL);
+
     }
 
-    public void rebuildTable() {
+    public void rebuildTable()  {
         SQLiteDatabase db = getWritableDatabase();
 
         this.deleteTable();

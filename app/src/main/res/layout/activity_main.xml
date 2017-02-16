@@ -23,11 +23,11 @@
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="50dp"
         map:cameraTargetLat="49.2189"
         map:cameraTargetLng="-122.9177"
         map:cameraZoom="12"
-        tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity" />
+        tools:context="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
+        android:layout_alignParentBottom="true" />
     <!--
     <Button
         android:text="Create Route"

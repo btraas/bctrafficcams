@@ -1,23 +1,22 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.content.Intent;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ImageButton;
-import android.widget.ImageView;
+import android.widget.CursorAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
+import android.widget.SimpleCursorAdapter;
 
 import java.util.ArrayList;
 
-import static android.R.attr.data;
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
@@ -46,6 +45,7 @@ public class HighwayCameraListActivity extends AppCompatActivity {
 
         dataModels = new ArrayList<>();
 
+        /*
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 1", bMapScaled));
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 2", bMapScaled));
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 3", bMapScaled));
@@ -57,8 +57,32 @@ public class HighwayCameraListActivity extends AppCompatActivity {
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 9", bMapScaled));
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 10", bMapScaled));
         dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 11", bMapScaled));
+        */
 
+
+        OpenHelper helper = new CamerasOpenHelper(getApplicationContext());
+        Cursor dbData = helper.getRows(getApplicationContext());
+        dbData.moveToFirst();
+
+        Log.d(TAG, "rows: " + helper.getNumberOfRows());
+
+
+        while(dbData.moveToNext())
+        {
+            final String name;
+            //name = cursor.get
+            name = dbData.getString(dbData.getColumnIndex("camera_name"));
+            String id   = dbData.getString(dbData.getColumnIndex("_id"));
+
+            dataModels.add(new HighwayCameraListDataModel(name, bMapScaled));
+
+
+            Log.d(TAG, id + "-" + name);
+        }
+
+        dbData.close();
         adapter = new HighwayListCustomAdapter(dataModels, getApplicationContext());
+
 
         listView.setAdapter(adapter);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

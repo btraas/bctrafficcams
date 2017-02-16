@@ -2,14 +2,16 @@ package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.AssetManager;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.location.Address;
+import android.location.Geocoder;
 import android.os.AsyncTask;
+import android.os.Bundle;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -30,11 +32,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
 
 import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.NoChangeException;
 import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
@@ -65,6 +65,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
         //initialize drawer menu
         menuAdapter();
+
+        openHelper = new CamerasOpenHelper(getApplicationContext());
+
+        if(openHelper.getNumberOfRows() < 1) {
+            openHelper.deleteTable();
+            openHelper.onCreate(openHelper.getWritableDatabase());
+
+        }
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         mapFragment = (SupportMapFragment) getSupportFragmentManager()
@@ -108,29 +116,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-    private void init() {
-        final SQLiteDatabase db;
-        final long numEntries;
-        final LoaderManager manager;
 
-        OpenHelper openHelper = new CamerasOpenHelper(getApplicationContext());
+    private LatLng getLocationFromAddress(String addr) throws IOException {
+        Geocoder coder = new Geocoder(getApplicationContext());
+        List<Address> address;
 
-        adapter = new CustomAdapter(getBaseContext(),
-                R.layout.highway_camera_list_row_item,
-                openHelper.getRows(getApplicationContext()),
-                new String[]
-                        {
-                                CamerasOpenHelper.NAME_COLUMN,
-                        },
-                new int[]
-                        {
-                                android.R.id.text1,
-                        }
-        );
+        address = coder.getFromLocationName(addr,5);
+        if (address==null || address.size() == 0) {
+            throw new IOException("Address lookup failed");
+        }
+        Address location=address.get(0);
 
-        listView.setAdapter(adapter);
-
+        return new LatLng(location.getLatitude(), location.getLongitude());
     }
+
 
     /**
      * Manipulates the map once available.
@@ -147,7 +146,36 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         // Add a marker in Sydney and move the camera
         LatLng start = new LatLng(49.2189, -122.9177);
-        mMap.addMarker(new MarkerOptions().position(start).title("New West"));
+
+
+
+        /*
+            TODO TOO SLOW
+
+        Cursor cameras = openHelper.getRows(getApplicationContext());
+
+        cameras.moveToFirst();
+        int failed = 0;
+        while(cameras.moveToNext())
+        {
+            try {
+                String name = cameras.getString(cameras.getColumnIndex("camera_name"));
+                LatLng location = getLocationFromAddress(name);
+                mMap.addMarker(new MarkerOptions().position(location).title(name));
+            } catch(IOException e) {
+                // do nothing
+                failed++;
+            }
+        }
+        Log.e(TAG,"failed cameras: "+failed);
+        */
+
+        //mMap.addMarker(new MarkerOptions().position(start).title("New West"));
+
+
+
+
+
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
 
     }
@@ -159,7 +187,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         //add menu items here
         mNavItems.add(new NavItem("Highway Cameras", "Check out the different highway cameras", R.drawable.ic_expand));
         mNavItems.add(new NavItem("Routes", "Choose route and see traffic adjusted travel time", R.drawable.ic_expand));
-        mNavItems.add(new NavItem("test cache", "This does something", R.drawable.ic_expand));
+        mNavItems.add(new NavItem("Download Cameras", "Update list of cameras", R.drawable.ic_expand));
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
 
@@ -248,11 +276,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             Log.d(TAG, "updated = "+b.getInt("updated"));
 
-            if(b.getInt("updated") > 0)
-            {
+           // if(b.getInt("updated") > 0)
+           // {
                 finish();
                 startActivity(getIntent()); // show changes
-            }
+          //  }
 
         }
     }
