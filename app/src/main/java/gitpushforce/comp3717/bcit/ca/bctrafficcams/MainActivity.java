@@ -30,6 +30,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -160,6 +161,24 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         //mMap.addMarker(new MarkerOptions().position(start).title("New West"));
 
+        mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
+
+            @Override
+            public void onInfoWindowClick(Marker arg0) {
+                Toast.makeText(getApplicationContext(), arg0.getId(), Toast.LENGTH_LONG).show();
+
+                Cursor c = openHelper.getRow(getApplicationContext(), Integer.parseInt(arg0.getSnippet()));
+                c.moveToFirst();
+                String link = c.getString(c.getColumnIndex("camera_link"));
+
+                final Intent intent;
+                intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
+                intent.putExtra("name", arg0.getTitle());
+                intent.putExtra("link", link);
+                startActivity(intent);
+
+            }
+        });
 
         Cursor cameras = openHelper.getRows(getApplicationContext());
 
@@ -169,11 +188,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         {
             try {
                 String name     = cameras.getString(cameras.getColumnIndex("camera_name"));
+                int id = cameras.getInt(cameras.getColumnIndex("_id"));
                 LatLng location = new LatLng(
                         Double.parseDouble(cameras.getString(cameras.getColumnIndex("latitude"))),
                         Double.parseDouble(cameras.getString(cameras.getColumnIndex("longitude")))
                 );
-                mMap.addMarker(new MarkerOptions().position(location).title(name));
+                Log.d(TAG, "adding camera " + name + " to map");
+
+                mMap.addMarker(new MarkerOptions().position(location).title(name).snippet(""+id));
             } catch(Exception e) {
                 // do nothing
                 failed++;
@@ -183,6 +205,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+
+        LoadPinsJob loader = new LoadPinsJob(mMap);
+        loader.execute();
 
     }
 
@@ -209,11 +234,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             {
                 try {
                     String name     = cameras.getString(cameras.getColumnIndex("camera_name"));
+                    int id = cameras.getInt(cameras.getColumnIndex("_id"));
                     LatLng location = new LatLng(
                                     Double.parseDouble(cameras.getString(cameras.getColumnIndex("latitude"))),
                                     Double.parseDouble(cameras.getString(cameras.getColumnIndex("longitude")))
                     );
-                    map.addMarker(new MarkerOptions().position(location).title(name));
+                    map.addMarker(new MarkerOptions().position(location).title(name).snippet(""+id));
                 } catch(Exception e) {
                     // do nothing
                     failed++;

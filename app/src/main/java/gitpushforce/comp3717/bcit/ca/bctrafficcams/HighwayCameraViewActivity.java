@@ -24,6 +24,11 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_highway_camera_view);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        String title = getIntent().getStringExtra("name");
+
+        getSupportActionBar().setTitle(title);
+
         //returnButton = (ImageButton)findViewById(R.id.returnButton);
 
         String link = getIntent().getStringExtra("link");
