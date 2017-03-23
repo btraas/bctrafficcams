@@ -6,6 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -13,6 +16,7 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -55,15 +59,18 @@ public final class DatabaseBuilder {
 
 
 
-    private OpenHelper helper;
+    //private OpenHelper helper;
 
-    private SQLiteDatabase camDB;
+    //private SQLiteDatabase camDB;
+
+    private Context context;
 
     public DatabaseBuilder(Context context) {
-        helper = new CamerasOpenHelper(context);
+        this.context = context;
+        /// /helper = new CamerasOpenHelper(context);
         //datasetsHelper = new DatasetsOpenHelper(context);
 
-        camDB = helper.getWritableDatabase();
+        //camDB = helper.getWritableDatabase();
 
     }
 
@@ -73,24 +80,26 @@ public final class DatabaseBuilder {
 
         int result = -1;
 
+        CamerasOpenHelper helper = new CamerasOpenHelper(context);
         helper.getWritableDatabase().beginTransactionNonExclusive();
 
         try {
 
             //cleanup(); // delete current data
             //categoriesHelper.rebuildTable(); // delete current data
-            result = syncHandler();
+            result = syncHandler(helper);
             helper.getWritableDatabase().setTransactionSuccessful();
 
         } catch (IOException e) {
             throw new IOException(e);
         } finally {
             helper.getWritableDatabase().endTransaction();
+            helper.close();
         }
         return result;
     }
 
-    private int syncHandler() throws IOException, NoChangeException {
+    private int syncHandler(CamerasOpenHelper helper) throws IOException, NoChangeException {
         //InputStream categories = httpInputStream(CATEGORIES_URL);
 
         int originalCount = (int)helper.getNumberOfRows();
@@ -115,19 +124,28 @@ public final class DatabaseBuilder {
                 Log.d(TAG, "Camera "+(++cameraCount));
 
 
-                HashMap<String, String> hm = new HashMap<String, String>();
+                //HashMap<String, String> hm = new HashMap<String, String>();
+                JSONObject arr = new JSONObject();
 
-                hm.put("_id",           nextLine[WEBCAMS_COLUMN_ID]);
-                hm.put("camera_name",   nextLine[WEBCAMS_COLUMN_NAME]);
-                hm.put("camera_link",   nextLine[WEBCAMS_COLUMN_IMAGE_LINK]);
-                hm.put("latitude",      nextLine[WEBCAMS_COLUMN_LATITUDE]);
-                hm.put("longitude",     nextLine[WEBCAMS_COLUMN_LONGITUDE]);
+                try {
+                    arr.put("_id", nextLine[WEBCAMS_COLUMN_ID]);
+                    arr.put("camera_name", nextLine[WEBCAMS_COLUMN_NAME]);
+                    arr.put("camera_link", nextLine[WEBCAMS_COLUMN_IMAGE_LINK]);
+                    arr.put("latitude", nextLine[WEBCAMS_COLUMN_LATITUDE]);
+                    arr.put("longitude", nextLine[WEBCAMS_COLUMN_LONGITUDE]);
 
-                helper.insert(camDB, hm);
+                    helper.upsertJSON("_id = ?", new String[] {nextLine[WEBCAMS_COLUMN_ID]}, arr);
+
+                } catch (JSONException e) {
+                    Log.e(TAG, "Unable to add camera");
+                    e.printStackTrace();
+                }
+
+
             }
 
         } catch (IOException e) {
-            throw new IOException("Unable to connect to "+DATABC_DOMAIN);
+            throw new IOException("Unable to connect to " + DATABC_DOMAIN);
         }
 
 
@@ -157,67 +175,6 @@ public final class DatabaseBuilder {
         return count - originalCount;
     }
 
-    private int syncHandler_LEGACY() throws IOException, NoChangeException {
-        //InputStream categories = httpInputStream(CATEGORIES_URL);
-
-        int originalCount = (int)helper.getNumberOfRows();
-
-
-        Log.d(TAG, "count: "+originalCount);
-
-        int cameraCount = 0;
-        //int datasetCount = 0;
-
-
-        ArrayList<String> failedCams = new ArrayList<String>();
-        ArrayList<String> failedDatasets = new ArrayList<String>();
-
-        try {
-            Elements cameras = Jsoup.connect(DRIVEBC_CAMERAS_URL).get().select(DRIVEBC_CAMERAS_SELECT);
-            for (Element camera : cameras) {
-                Log.d(TAG, "Camera "+(cameraCount+1));
-
-                String link = DRIVEBC_CAMERAS_BASEURL + camera.parent().attr("href");
-                String name = camera.attr("title").replace("Webcam Image: ", "");
-
-                HashMap<String, String> hm = new HashMap<String, String>();
-                hm.put("_id", ""+(++cameraCount));
-                hm.put("camera_name", name);
-                hm.put("camera_link", ""+link);
-                helper.insert(camDB, hm);
-                //helper.insert(helper.getWritableDatabase(), )
-
-            }
-        } catch (IOException e) {
-            throw new IOException("Unable to connect to "+DRIVEBC_DOMAIN);
-        }
-
-
-        if(failedCams.size() > 0) {
-            String failed = "Failed ot load ("+failedCams.size()+") Cams: ";
-
-            int i;
-            for(i = 0; i <= MAX_ERROR_TOAST && i < failedCams.size(); i++) {
-                failed += failedCams.get(i);
-                if(i+1 != MAX_ERROR_TOAST && i+1 < failedCams.size()) failed += ", ";
-            }
-            if(i < failedCams.size()) failed += "...";
-
-            throw new IOException(failed);
-
-
-        }
-
-        Log.d(TAG, "orig dataset: "+originalCount+" now datasets: "+cameraCount);
-
-
-        int count = (int)helper.getNumberOfRows();
-
-        if(count == originalCount) throw new NoChangeException("Already up-to-date");
-        if(count < originalCount) throw new IOException("Failed to update DB...");
-
-        return count - originalCount;
-    }
 
 
 

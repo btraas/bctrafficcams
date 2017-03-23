@@ -21,7 +21,7 @@ import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
 
-public class HighwayCameraListActivity extends AppCompatActivity {
+public class HighwayCameraListActivity extends RootActivity {
 
     public static final String TAG = HighwayCameraListActivity.class.getName();
     private ListView listView;
@@ -32,9 +32,13 @@ public class HighwayCameraListActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate begin");
+        super.layoutId = R.layout.activity_highway_camera_list;
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_highway_camera_list);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //setContentView(R.layout.activity_highway_camera_list);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        // init drawer with this item selected
+        initDrawer(R.id.nav_camera);
 
         listView = (ListView)findViewById(R.id.camera_list);
         //listView.setOnItemClickListener(this);
@@ -61,7 +65,7 @@ public class HighwayCameraListActivity extends AppCompatActivity {
 
 
         OpenHelper helper = new CamerasOpenHelper(getApplicationContext());
-        Cursor dbData = helper.getRows(getApplicationContext());
+        Cursor dbData = helper.getRows();
         dbData.moveToFirst();
 
         Log.d(TAG, "rows: " + helper.getNumberOfRows());
@@ -94,8 +98,9 @@ public class HighwayCameraListActivity extends AppCompatActivity {
                         .setAction("No action", null).show();
                 final Intent intent;
                 intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
-                intent.putExtra("name", dataModel.getCameraName());
-                intent.putExtra("link", dataModel.getImageLink());
+                //intent.putExtra("name", dataModel.getCameraName());
+                //intent.putExtra("link", dataModel.getImageLink());
+                intent.putExtra("cam_no", position+1); // TODO should be replaced with finding by ID rather than hoping the order is the same as this cursor...
                 startActivity(intent);
             }
         });

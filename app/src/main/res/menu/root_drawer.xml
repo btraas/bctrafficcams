@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@android:drawable/ic_dialog_map"
+            android:title="Camera Map" />
+        <item
+            android:id="@+id/nav_camera"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Highway Cameras" />
+        <item
+            android:id="@+id/nav_routes"
+            android:icon="@android:drawable/ic_menu_compass"
+            android:title="Routes" />
+
+    </group>
+
+    <item android:title="Settings">
+        <menu>
+            <item
+                android:id="@+id/nav_newroutes"
+                android:icon="@android:drawable/ic_input_add"
+                android:title="Create Route" />
+            <item
+                android:id="@+id/nav_download"
+                android:icon="@drawable/ic_menu_manage"
+                android:title="Download Cameras" />
+
+        </menu>
+    </item>
+
+</menu>

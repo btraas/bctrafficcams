@@ -7,15 +7,22 @@ import android.database.Cursor;
 import android.database.CursorIndexOutOfBoundsException;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.net.Uri;
 import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
+
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.BuildConfig;
+
 
 /**
  * Created by darcy on 2016-10-16.
@@ -26,20 +33,18 @@ public abstract class OpenHelper
 {
     private static final String TAG = OpenHelper.class.getName();
     private static final int SCHEMA_VERSION = 1;
-    private static final String URI_BASE = "content://a00968178.comp3717.bcit.ca.opendata/";
+    public static final String URI_BASE = "content://"+ BuildConfig.APPLICATION_ID +"/";
 
-    //private static final String DB_NAME = "categories.db";
-    //public static final String NAME_TABLE_NAME = "categories";
-    //private static final String ID_COLUMN_NAME = "_id";
-    //public static final String NAME_COLUMN_NAME = "category";
-    //private static CamerasOpenHelper instance;
-	
+
+    protected final Context context;
 	protected final String dbName;
 
     protected final String tableName;
-	protected final String idName;
-	protected final String[] columnNames;
-    protected final String[] columnTypes;
+	public final String idName;
+	protected final String[] columnDefs;
+    protected final String[] columnNames;
+    //protected final String[] columnTypes;
+    protected final String defaultOrder;
 	protected final Uri contentUri;
 
     protected String nameColumn;
@@ -51,26 +56,27 @@ public abstract class OpenHelper
 
     protected OpenHelper(final Context ctx, final String dbName,
                          String tableName, String idName,
-                         String[] columnNames, String[] columnTypes)
+                         String[] columnDefs,
+                         String defaultOrder)
     {
         super(ctx, dbName, null, SCHEMA_VERSION);
 
-        if(columnNames.length != columnTypes.length) {
 
-            String msg = NAME_TYPE_MISMATCH + " ("
-                    + columnNames.length + " != " + columnTypes.length + ")";
-
-            Log.e(TAG, msg, new Exception(msg));
-        }
-
+        this.context = ctx;
         this.dbName = dbName;
         this.tableName = tableName;
         this.idName = idName;
-        this.columnNames = columnNames;
-        this.columnTypes = columnTypes;
+        this.columnDefs = columnDefs;
+        this.columnNames = new String[columnDefs.length];
+        for(int i=0; i<columnDefs.length; ++i) {
+            this.columnNames[i] = columnDefs[i].substring(0,columnDefs[i].indexOf(" "));
+        }
+
+
+        this.defaultOrder = defaultOrder;
         this.contentUri = Uri.parse(URI_BASE + tableName);
 
-        this.nameColumn = columnNames[0]; // by default
+        this.nameColumn = columnNames[0]; // by default, first column (def up until )
     }
 
     @Override
@@ -80,6 +86,7 @@ public abstract class OpenHelper
 
         setWriteAheadLoggingEnabled(true);
         db.setForeignKeyConstraintsEnabled(true);
+
     }
 
     @Override
@@ -90,9 +97,9 @@ public abstract class OpenHelper
         CREATE_TABLE = "CREATE TABLE IF NOT EXISTS "  + this.tableName + " ( " +
                             this.idName   + " INTEGER PRIMARY KEY AUTOINCREMENT, ";
 
-        for(int i = 0; i < columnNames.length; i++) {
-            CREATE_TABLE += columnNames[i] + " " + columnTypes[i];
-            if(i+1 != columnNames.length) CREATE_TABLE += ", ";
+        for(int i = 0; i < columnDefs.length; i++) {
+            CREATE_TABLE += columnDefs[i];
+            if(i+1 != columnDefs.length) CREATE_TABLE += ", ";
         }
         CREATE_TABLE += ")";
         Log.d(TAG, "Running SQL: "+CREATE_TABLE);
@@ -104,6 +111,14 @@ public abstract class OpenHelper
                           final int oldVersion,
                           final int newVersion)
     {
+    }
+
+    @Override
+    public void close() {
+        super.close();
+        if(this.writeDatabase != null) this.writeDatabase.close();
+        if(this.readDatabase != null) this.readDatabase.close();
+        Log.d(TAG, this.dbName + " closed!");
     }
 
     public Uri getContentUri() {
@@ -125,7 +140,7 @@ public abstract class OpenHelper
     @Override
     public SQLiteDatabase getWritableDatabase() {
 
-        if(writeDatabase == null) writeDatabase = super.getWritableDatabase();
+        if(writeDatabase == null ) writeDatabase = super.getWritableDatabase();
         return writeDatabase;
     }
 
@@ -134,10 +149,20 @@ public abstract class OpenHelper
 
         //return getWritableDatabase();
 
-        if(readDatabase == null) readDatabase = super.getReadableDatabase();
+        if(readDatabase == null ) readDatabase = super.getReadableDatabase();
         return readDatabase;
 
 
+    }
+
+    public OpenHelper useDB(SQLiteDatabase db) {
+        if(writeDatabase != null && writeDatabase.isOpen()) writeDatabase.close();
+        writeDatabase = db;
+
+        if(readDatabase != null && readDatabase.isOpen()) readDatabase.close();
+        readDatabase = db;
+
+        return this;
     }
 
     public long getNumberOfRows()
@@ -162,32 +187,138 @@ public abstract class OpenHelper
         return (numEntries);
     }
 
-    public void insert(final SQLiteDatabase db,
-                       final HashMap<String, String> data
-                       )
-    {
-        final ContentValues contentValues;
+    public void insert(final ContentValues data, final boolean require) {
+        if(require) getWritableDatabase().insertOrThrow(this.tableName, null, data);
+        else getWritableDatabase().insert(this.tableName, null, data);
 
-        contentValues = new ContentValues();
-        for(Map.Entry<String, String> entry : data.entrySet()) {
-            contentValues.put(entry.getKey(), entry.getValue());
+    }
+
+    public void insert(final ContentValues data) {
+        insert(data, false);
+    }
+    public void insert(int id, ContentValues data)
+    {
+        insert(id, data, false);
+    }
+
+
+    public void insert(int id, ContentValues data, final boolean require)
+    {
+        if(id > 0) data.put("_id", ""+id);
+        insert(data, require);
+    }
+
+    public void insertJSON(JSONObject object) throws JSONException, SQLiteException
+    {
+        ContentValues hm = new ContentValues();
+
+        Iterator<String> columns = object.keys();
+        while(columns.hasNext()) {
+            String key = columns.next();
+
+            if(this.hasColumn(key)) {
+                hm.put(key, object.getString(key));
+                // Log.d(TAG, "Added " + this.tableName + "." + key + "=" + object.getString(key));
+            } else {
+               // Log.w(TAG, "Attempted to insert JSON key " + this.tableName + "."+key+" (not found)");
+
+            }
+
         }
-        db.insert(this.tableName, null, contentValues);
+        Log.d(TAG, "Inserting "+hm.size()+" JSON keys to "+this.tableName);
+        this.insert(hm, true);
+
+    }
+
+    public void updateJSON(String selection, String[] selectionArgs, JSONObject object ) throws JSONException, SQLiteException {
+        SQLiteDatabase db = getWritableDatabase();
+
+        ContentValues hm = new ContentValues();
+
+        Iterator<String> columns = object.keys();
+        while(columns.hasNext()) {
+            String key = columns.next();
+
+            if(this.hasColumn(key)) {
+                hm.put(key, object.getString(key));
+                ///Log.d(TAG, "Added " + this.tableName + "." + key + "=" + object.getString(key));
+            } else {
+               // Log.w(TAG, "Attempted to insert JSON key " + this.tableName + "."+key+" (not found)");
+
+            }
+
+        }
+        Log.d(TAG, "Updating "+hm.size()+" JSON keys to "+this.tableName);
+
+        db.update(this.tableName, hm, selection, selectionArgs);
+    }
+
+    public void upsertJSON(String selection, String[] selectionArgs, final JSONObject data) throws JSONException, SQLiteException {
+        int rows = (int)getNumberOfRows(selection, selectionArgs);
+        if(rows < 1) insertJSON(data);
+        else         updateJSON(selection, selectionArgs, data);
     }
 
 
 
-    public void deleteTable()  {
+    public boolean insertIfNotExists(int id, final ContentValues data)
+    {
+        int rows = (int)getNumberOfRows("_id = ?", new String[] {""+id});
+        if(rows < 1) insert(id, data);
 
+        return (rows < 1); // return true if inserted
+    }
+
+    public boolean insertIfNotExists(String where, String[] whereArgs,
+                                     final ContentValues data)
+    {
+        int rows = (int)getNumberOfRows(where, whereArgs);
+        if(rows < 1) insert(data);
+
+        return (rows < 1); // return true if inserted
+    }
+
+
+    public void update(String selection, String[] selectionArgs, final ContentValues data) {
+        SQLiteDatabase db = getWritableDatabase();
+
+        db.update(this.tableName, data, selection, selectionArgs);
+    }
+
+    public void update(int id, final ContentValues data) {
+
+        update("_id = ?", new String[] {""+id}, data);
+    }
+
+
+
+    public void upsert(String selection, String[] selectionArgs, final ContentValues data)
+    {
+        int rows = (int)getNumberOfRows(selection, selectionArgs);
+        if(rows < 1) insert(data);
+        else         update(selection, selectionArgs, data);
+    }
+
+    public void upsert(int id, final ContentValues data)
+    {
+        int rows = (int)getNumberOfRows("_id = ?", new String[] {""+id});
+        if(rows < 1) insert(id, data);
+        else         update(id, data);
+    }
+
+
+
+
+
+    public void deleteTable() {
         SQLiteDatabase db = getWritableDatabase();
 
         String SQL = "DROP TABLE IF EXISTS "+this.tableName;
                 Log.d(TAG, "Executing SQL: " + SQL);
         db.execSQL(SQL);
-
     }
 
-    public void rebuildTable()  {
+    public void rebuildTable() {
         SQLiteDatabase db = getWritableDatabase();
 
         this.deleteTable();
@@ -204,7 +335,7 @@ public abstract class OpenHelper
     }
 
     public int getId(final String where, final String[] args) throws Resources.NotFoundException {
-        Cursor c = this.getRows(null, where, args);
+        Cursor c = this.getRows(where, args);
         c.moveToFirst();
         try {
             if (c.getInt(0) == 0) throw new Resources.NotFoundException("Row not found!");
@@ -218,14 +349,14 @@ public abstract class OpenHelper
     /**
      * Default getRow... for PK
      */
-    public Cursor getRow(final Context context, final int id) {
-        return this.getRow(context, idName, ""+id);
+    public Cursor getRow(final int id) {
+        return this.getRow(idName, ""+id);
     }
 
     /**
      * getRow with a colName and ID
      */
-    public Cursor getRow(final Context context, final String colName, final String value) {
+    public Cursor getRow(final String colName, final String value) {
         final Cursor cursor;
         boolean valid = false;
 
@@ -243,7 +374,7 @@ public abstract class OpenHelper
             return null;
         }
 
-        return getRows(context, colName + " = ?", new String[] {""+value});
+        return getRows(colName + " = ?", new String[] {""+value});
 
 
     }
@@ -251,9 +382,9 @@ public abstract class OpenHelper
     /**
      * Get all rows
      */
-    public Cursor getRows(final Context context)
+    public Cursor getRows()
     {
-        return this.getRows(context, null, null, null, null, null, null, null );
+        return this.getRows(null, null );
 
     }
 
@@ -261,10 +392,10 @@ public abstract class OpenHelper
      * Get rows with selection
      *
      */
-    public Cursor getRows(final Context context, String selection) {
+    public Cursor getRows(String selection) {
 
 
-        return this.getRows(context, null, selection, null, null, null, null, null );
+        return this.getRows(selection, null );
 
     }
 
@@ -272,10 +403,10 @@ public abstract class OpenHelper
      * Get rows with selection & args
      *
      */
-    public Cursor getRows(final Context context, String selection, String[] selectionArgs) {
+    public Cursor getRows(String selection, String[] selectionArgs) {
 
 
-        return this.getRows(context, null, selection, selectionArgs, null, null, null, null );
+        return this.getRows(null, selection, selectionArgs, null, null, defaultOrder, null );
 
     }
 
@@ -283,8 +414,7 @@ public abstract class OpenHelper
      * Get rows with full query parameters
      *
      */
-    public Cursor getRows(final Context context,
-                            String[] cols,
+    public Cursor getRows(String[] cols,
                             String selection,
                             String[] args,
                             String group,
@@ -294,7 +424,20 @@ public abstract class OpenHelper
     {
         final Cursor cursor;
 
-        Log.d(TAG, "getRows() selection: "+selection);
+        if(order == null) order = defaultOrder;
+
+        Log.d(TAG, "getRows() selection: "+selection+" ordeR: "+defaultOrder);
+
+        Log.d(TAG,  "Running Q: SELECT "+Arrays.toString(cols) +
+                    " FROM "+tableName+
+                    (selection == null ? "" : " WHERE "+selection) +
+                    (group == null ? "" : " GROUP BY " + group) +
+                    (having == null ? "" : " HAVING  " + having) +
+                    (order == null ? "" : " ORDER BY " + order) +
+                    (limit == null ? "" : " LIMIT " + limit) +
+                    (args == null ? "" : "\n("+Arrays.toString(args)+")")
+        );
+
 
         cursor = getReadableDatabase().query(this.tableName,
                           cols,
@@ -311,4 +454,58 @@ public abstract class OpenHelper
 
         return (cursor);
     }
+
+    public static String cursorCSV(Cursor cursor) {
+        String result = "";
+        if (cursor.moveToFirst()) {
+            for(int i=0; i<cursor.getColumnCount(); ++i) {
+                result += cursor.getColumnName(i) + ",";
+            }
+            result += "\n";
+            do {
+
+                for(int i=0; i<cursor.getColumnCount();i++)
+                {
+                    result += cursor.getString(i) + ",";
+                }
+                result += "\n";
+
+            } while (cursor.moveToNext());
+        }
+        return result;
+    }
+
+
+    public static JSONObject cursorJSONObject(Cursor cursor) {
+        JSONObject result = new JSONObject();
+        for(int i=0; i<cursor.getColumnCount(); ++i) {
+            try {
+                result.put(cursor.getColumnName(i), cursor.getString(i));
+            } catch (JSONException e) {
+
+            }
+        }
+        return result;
+    }
+
+    public static JSONArray cursorJSONArray(Cursor cursor) {
+        JSONArray result = new JSONArray();
+        if (cursor.moveToFirst()) {
+            do {
+                result.put(cursorJSONObject(cursor));
+            } while (cursor.moveToNext());
+        }
+        return result;
+    }
+
+
+    public boolean hasColumn(String column) {
+        column = column.toLowerCase();
+        for(int i=0; i<columnNames.length; ++i) {
+            if(column.equals(columnNames[i].toLowerCase())) return true;
+        }
+        if(column.equals(idName.toLowerCase())) return true;
+        return false;
+    }
+
 }

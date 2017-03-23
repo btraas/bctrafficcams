@@ -1,5 +1,6 @@
 <resources>
-    <string name="app_name">BCTrafficCams</string>
+    <string name="app_name">BC Traffic Cams</string>
+    <string name="app_description">Real-time traffic monitoring!</string>
     <string name="title_activity_maps">Map View</string>
     <string name="title_activity_menu">MenuActivity</string>
 

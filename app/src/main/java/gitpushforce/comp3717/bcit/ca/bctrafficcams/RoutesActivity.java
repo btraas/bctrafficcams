@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 
-public class RoutesActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
+public class RoutesActivity extends RootActivity implements AdapterView.OnItemClickListener {
 
     public static final String TAG = HighwayCameraListActivity.class.getName();
 
@@ -24,9 +24,12 @@ public class RoutesActivity extends AppCompatActivity implements AdapterView.OnI
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreateBegin");
+        super.layoutId = R.layout.activity_routes;
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_routes);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //setContentView(R.layout.activity_routes);
+        //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+        initDrawer(R.id.nav_routes);
 
         listView = (ListView)findViewById(R.id.route_list);
         routes = new ArrayList<>();
