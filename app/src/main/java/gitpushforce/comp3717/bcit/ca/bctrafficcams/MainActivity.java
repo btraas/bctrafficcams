@@ -274,9 +274,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public void menuAdapter(){
 
         //add menu items here
-        mNavItems.add(new NavItem("Highway Cameras", "Check out the different highway cameras", R.drawable.ic_expand));
-        mNavItems.add(new NavItem("Routes", "Choose route and see traffic adjusted travel time", R.drawable.ic_expand));
-        mNavItems.add(new NavItem("Download Cameras", "Update list of cameras", R.drawable.ic_expand));
+        mNavItems.add(new NavItem("Highway Cameras", "Check out the different highway cameras", R.drawable.ic_menu_camera));
+        mNavItems.add(new NavItem("Routes", "Choose route and see traffic adjusted travel time", R.drawable.ic_menu_manage));
+        mNavItems.add(new NavItem("Download Cameras", "Update list of cameras", R.drawable.ic_menu_gallery));
 
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawerLayout);
 
