@@ -6,18 +6,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.AdapterView;
-import android.widget.CursorAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.SimpleCursorAdapter;
 
 import java.util.ArrayList;
 
@@ -26,9 +21,9 @@ import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
 
-public class HighwayCameraListActivity extends RootActivity {
+public class MyCameraListActivity extends RootActivity {
 
-    public static final String TAG = HighwayCameraListActivity.class.getName();
+    public static final String TAG = MyCameraListActivity.class.getName();
     private ListView listView;
     private ArrayList<HighwayCameraListDataModel> dataModels;
     private int side = 100;
@@ -73,7 +68,7 @@ public class HighwayCameraListActivity extends RootActivity {
         */
 
 
-        OpenHelper helper = new CamerasOpenHelper(getApplicationContext());
+        OpenHelper helper = new MyCamerasOpenHelper(getApplicationContext());
         Cursor dbData = helper.getRows();
         dbData.moveToFirst();
 
@@ -123,7 +118,7 @@ public class HighwayCameraListActivity extends RootActivity {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                 // When user changed the Text
-                HighwayListCustomAdapter adapter = HighwayCameraListActivity.this.adapter;
+                HighwayListCustomAdapter adapter = MyCameraListActivity.this.adapter;
                 adapter.getFilter().filter(cs);
                 listView.setAdapter(adapter);
                 listView.invalidateViews();

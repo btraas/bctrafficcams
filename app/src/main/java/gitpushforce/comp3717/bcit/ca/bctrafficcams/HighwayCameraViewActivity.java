@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -131,6 +132,20 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         protected void onPostExecute(Bitmap result) {
             bmImage.setImageBitmap(result);
 
+        }
+    }
+
+    public void addCamera(View v) {
+        CamerasOpenHelper helper = new CamerasOpenHelper(this);
+        MyCamerasOpenHelper myHelper = new MyCamerasOpenHelper(this);
+        int id = (int)pagerAdapter.getItemId(pager.getCurrentItem());
+        try {
+            
+            myHelper.upsertJSON("_id = ?", new String[]{id+""}, OpenHelper.cursorJSONObject(helper.getRow(id)));
+            Toast.makeText(this, "Saved camera", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Unable to save camera", Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
     }
 

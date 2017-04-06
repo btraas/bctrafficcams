@@ -1,24 +1,35 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
+import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Filter;
+import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 /**
  * Created by arroy on 2017-02-08.
  */
 
 public class HighwayListCustomAdapter extends ArrayAdapter<HighwayCameraListDataModel>
-        implements View.OnClickListener {
+        implements View.OnClickListener, Filterable {
+
+    private static final String TAG = HighwayListCustomAdapter.class.getName();
 
     private ArrayList<HighwayCameraListDataModel> cameraList;
-    private Context mContext;
+    private ArrayList<HighwayCameraListDataModel> originalCameraList;
+    private final Context mContext;
+    private final Activity activity;
+    private HighwayListCustomAdapter self;
 
     //View lookup cache
     private static class ViewHolder {
@@ -26,12 +37,15 @@ public class HighwayListCustomAdapter extends ArrayAdapter<HighwayCameraListData
         ImageView cameraImage;
     }
 
-    public HighwayListCustomAdapter(ArrayList<HighwayCameraListDataModel> list, Context context)
+    public HighwayListCustomAdapter(ArrayList<HighwayCameraListDataModel> list, Activity activity)
     {
-        super(context, R.layout.highway_camera_list_row_item, list);
+        super(activity.getApplicationContext(), R.layout.highway_camera_list_row_item, list);
 
+        this.self = this;
         this.cameraList = list;
-        this.mContext = context;
+        this.originalCameraList = list;
+        this.activity = activity;
+        this.mContext = activity.getApplicationContext();
     }
 
 
@@ -50,11 +64,63 @@ public class HighwayListCustomAdapter extends ArrayAdapter<HighwayCameraListData
         */
     }
 
-
-    int lastPosition = -1;
-
+    @NonNull
     @Override
-    public View getView(int position, View convertView, ViewGroup parent)
+    public Filter getFilter()
+    {
+        return new Filter()
+        {
+            @Override
+            protected FilterResults performFiltering(CharSequence charSequence)
+            {
+                String in = charSequence.toString().toLowerCase();
+                FilterResults results = new FilterResults();
+
+                //If there's nothing to filter on, return the original data for your list
+                if(charSequence == null || charSequence.length() == 0)
+                {
+                    results.values = originalCameraList;
+                    results.count = originalCameraList.size();
+                }
+                else
+                {
+                    ArrayList<HighwayCameraListDataModel> filterResultsData = new ArrayList<>();
+
+                    for(HighwayCameraListDataModel data : originalCameraList)
+                    {
+                        if(data.getCameraName().toLowerCase().contains(in))
+                            filterResultsData.add(data);
+                    }
+
+                    results.values = filterResultsData;
+                    results.count = filterResultsData.size();
+                }
+
+                return results;
+            }
+
+            @Override
+            protected void publishResults(CharSequence charSequence, FilterResults filterResults) {
+                Log.d(TAG, "filtered to "+filterResults.count + "values!");
+                self.cameraList = (ArrayList<HighwayCameraListDataModel>) filterResults.values;
+                Log.d(TAG, "real: "+self.cameraList.size());
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Log.d(TAG, "notifying change ");
+                        self.notifyDataSetChanged();
+                    }
+                });
+            }
+        };
+    }
+
+
+            int lastPosition = -1;
+
+    @NonNull
+    @Override
+    public View getView(int position, View convertView, @NonNull ViewGroup parent)
     {
         HighwayCameraListDataModel dataModel = getItem(position);
         ViewHolder viewHolder;

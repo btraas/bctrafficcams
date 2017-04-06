@@ -31,6 +31,17 @@
 
     </android.support.v4.view.ViewPager>
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/sync_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|right|center_horizontal"
+        android:layout_margin="16dp"
+        android:src="@drawable/ic_add_camera"
+        app:elevation="7dp"
+        android:minHeight="250dp"
+        android:onClick="addCamera" />
+
 
 
 </android.support.design.widget.CoordinatorLayout>
