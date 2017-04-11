@@ -1,6 +1,12 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.graphics.Camera;
+import android.widget.Toast;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 
@@ -28,4 +34,7 @@ public final class MyCamerasOpenHelper
     {
         super(ctx, DB_NAME, TABLE_NAME, ID_COLUMN_NAME, COLUMNS, NAME_COLUMN );
     }
+
+
+
 }

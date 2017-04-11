@@ -1,19 +1,23 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
 import android.app.Activity;
+import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.PhoneNumberFormattingTextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -34,6 +38,7 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
 
     private CamsPagerAdapter pagerAdapter;
     private ViewPager pager;
+    //private static FloatingActionButton saveButton;
 
     private static final int DEFAULT_EXTRA_CAM_NO = -1;
     private static final String TAG = HighwayCameraViewActivity.class.getName();
@@ -44,22 +49,10 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_highway_camera_view);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        //NavUtils.navigateUpFromSameTask(this);
 
 
-        /*
-        String title = getIntent().getStringExtra("name");
 
-        getSupportActionBar().setTitle(title);
-
-        //returnButton = (ImageButton)findViewById(R.id.returnButton);
-
-        String link = getIntent().getStringExtra("link");
-        Log.d(TAG, "recieved image link: "+link);
-
-        new DownloadImageTask((ImageView) findViewById(R.id.imageView))
-                .execute(link);
-
-        */
 
 
         CamerasOpenHelper helper = new CamerasOpenHelper(this);
@@ -74,10 +67,11 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         pager.setAdapter(pagerAdapter);
 
         int camNo = DEFAULT_EXTRA_CAM_NO;
-        if(getIntent().hasExtra("cam_no")) {
-            camNo = getIntent().getIntExtra("cam_no", DEFAULT_EXTRA_CAM_NO);
+        if(getIntent().hasExtra("cam_id")) {
+            camNo = pagerAdapter.findId(getIntent().getIntExtra("cam_id", DEFAULT_EXTRA_CAM_NO));
         }
 
+        /*
         if(camNo == DEFAULT_EXTRA_CAM_NO && getIntent().hasExtra("cam_json")) {
             try {
                 JSONObject cam = new JSONObject(getIntent().getStringExtra("cam_json"));
@@ -85,6 +79,9 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
             } catch (JSONException e) {
             }
         }
+        */
+
+
 
         pager.setCurrentItem(camNo);
 
@@ -92,20 +89,19 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         Log.d(TAG, "onCreate end");
     }
 
+
     @Override
-    protected void onStart()
-    {
-        Log.d(TAG, "onStart begin");
-        super.onStart();
-        // returnButton.setOnClickListener(new View.OnClickListener() {
-         //   public void onClick(View v) {
-         //       finish();
-         //   }
-        //})
-
-
-        Log.d(TAG, "onStart end");
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            // Respond to the action bar's Up/Home button
+            case android.R.id.home:
+                //NavUtils.navigateUpFromSameTask(this);
+                finish();
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
     }
+
 
     private static class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         ImageView bmImage;
@@ -135,18 +131,51 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
         }
     }
 
-    public void addCamera(View v) {
+
+
+    public void toggleCamera(View v) {
+
         CamerasOpenHelper helper = new CamerasOpenHelper(this);
-        MyCamerasOpenHelper myHelper = new MyCamerasOpenHelper(this);
-        int id = (int)pagerAdapter.getItemId(pager.getCurrentItem());
+        //int id = pagerAdapter.getId(pager.getCurrentItem());
+
+        /*
+        pagerAdapter.getItemId(pos)
+                pager.getCurrentItem();
+        */
+        //int id = pager.getCurrentItem();
+        JSONObject o = pagerAdapter.getFromPosition(pager.getCurrentItem());
+
+        //Toast.makeText(v.getContext(), "toggling number "+pager.getCurrentItem() + " "+o, Toast.LENGTH_LONG).show();
+
+        int id;
         try {
-            
-            myHelper.upsertJSON("_id = ?", new String[]{id+""}, OpenHelper.cursorJSONObject(helper.getRow(id)));
-            Toast.makeText(this, "Saved camera", Toast.LENGTH_LONG).show();
-        } catch (Exception e) {
-            Toast.makeText(this, "Unable to save camera", Toast.LENGTH_LONG).show();
-            e.printStackTrace();
+            id = o.getInt("_id");
+        } catch (JSONException e) {
+            return;
         }
+
+
+        boolean prevSaved = false;
+        try {
+            prevSaved = (o.getInt("saved") == 1);
+        } catch (JSONException e) {
+            return;
+        }
+
+
+        if(prevSaved)   ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(R.drawable.add_camera_black ));
+        else        ((FloatingActionButton)v).setImageDrawable(getResources().getDrawable(R.drawable.remove_camera_black));
+
+        try {
+            o.put("saved", prevSaved ? 1 : 0);
+            //Toast.makeText(v.getContext(), "saving number "+pager.getCurrentItem(), Toast.LENGTH_LONG).show();
+            pagerAdapter.cams.put(pager.getCurrentItem(), o);
+        } catch (JSONException e) {
+
+        }
+
+        helper.setCamera(id, !prevSaved);
+        helper.close();
     }
 
     /**
@@ -159,7 +188,13 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
          */
         //private static final String ARG_STOP_NUMBER = "stop_number";
 
+        private FloatingActionButton saveButton;
+
+
         public PlaceholderFragment() {
+
+
+
         }
 
         /**
@@ -174,9 +209,12 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
 
             args.putString("json_string", json);
 
+
             fragment.setArguments(args);
             return fragment;
         }
+
+
 
         @Override
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -189,6 +227,7 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
 
             View rootView = inflater.inflate(R.layout.fragment_camera, container, false);
 
+            saveButton = (FloatingActionButton) rootView.findViewById(R.id.save_button);
 
             ImageView bmImage = (ImageView)rootView.findViewById(R.id.imageView);
 
@@ -198,6 +237,9 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
                 cam = new JSONObject(getArguments().getString("json_string"));
 
                 String link = cam.getString("camera_link");
+                boolean saved = cam.getInt("saved") != 0;
+                if(saved)   saveButton.setImageDrawable(getResources().getDrawable(R.drawable.remove_camera_black ));
+                else        saveButton.setImageDrawable(getResources().getDrawable(R.drawable.add_camera_black));
 
                 (new DownloadImageTask(bmImage))
                         .execute(link);
@@ -253,6 +295,14 @@ public class HighwayCameraViewActivity extends AppCompatActivity {
             return 0;
         }
 
+        public JSONObject getFromPosition(int pos) {
+            try {
+                return cams.getJSONObject(pos);
+            } catch (JSONException e) {
+
+            }
+            return null;
+        }
 
         @Override
         public int getCount() {

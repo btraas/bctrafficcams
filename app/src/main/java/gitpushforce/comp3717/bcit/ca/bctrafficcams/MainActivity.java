@@ -128,7 +128,7 @@ public class MainActivity extends RootActivity implements OnMapReadyCallback {
 
             @Override
             public void onInfoWindowClick(Marker arg0) {
-                Toast.makeText(getApplicationContext(), arg0.getId(), Toast.LENGTH_LONG).show();
+                //Toast.makeText(getApplicationContext(), arg0.getId(), Toast.LENGTH_LONG).show();
 
                 OpenHelper openHelper = new CamerasOpenHelper(thisActivity);
                 Cursor c = openHelper.getRow(Integer.parseInt(arg0.getSnippet()));
@@ -175,7 +175,8 @@ public class MainActivity extends RootActivity implements OnMapReadyCallback {
         cameras.close();
         openHelper.close();
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(start));
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(start, 9));
+
 
         LoadPinsJob loader = new LoadPinsJob(mMap);
         loader.execute();
@@ -227,7 +228,7 @@ public class MainActivity extends RootActivity implements OnMapReadyCallback {
         @Override
         protected void onPostExecute(Bundle b) {
             String message = b.getString("msg");
-            Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
+           // Toast.makeText(getApplicationContext(), message, Toast.LENGTH_LONG).show();
             //findViewById(R.id.sync_button).clearAnimation();
 
             Log.d(TAG, "updated = "+b.getInt("updated"));

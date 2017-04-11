@@ -17,6 +17,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         >
+
+        <provider
+            android:name=".databases.CustomContentProvider"
+            android:authorities="gitpushforce.comp3717.bcit.ca.bctrafficcams"
+            android:enabled="true"
+            android:exported="false"/>
+
         <activity android:name=".MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
 
@@ -42,6 +49,14 @@
             android:value="@string/google_maps_key" />
 
         <activity android:name=".HighwayCameraListActivity"
+            android:parentActivityName="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
+            android:theme="@style/AppTheme.NoActionBar">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
+                />
+        </activity>
+        <activity android:name=".SavedCamerasListActivity"
             android:parentActivityName="gitpushforce.comp3717.bcit.ca.bctrafficcams.MainActivity"
             android:theme="@style/AppTheme.NoActionBar">
             <meta-data

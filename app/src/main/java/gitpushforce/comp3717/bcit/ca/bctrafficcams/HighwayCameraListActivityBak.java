@@ -1,9 +1,11 @@
 package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 
+import android.app.LoaderManager;
 import android.content.Intent;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.text.Editable;
@@ -12,22 +14,26 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.FilterQueryProvider;
 import android.widget.ListView;
+import android.widget.SimpleCursorAdapter;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 
+import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.CustomLoaderCallbacks;
 import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 
 //import static gitpushforce.comp3717.bcit.ca.bctrafficcams.R.id.returnButton;
 
 
-public class MyCameraListActivity extends RootActivity {
+public class HighwayCameraListActivityBak extends RootActivity {
 
-    public static final String TAG = MyCameraListActivity.class.getName();
+    public static final String TAG = HighwayCameraListActivityBak.class.getName();
     private ListView listView;
     private ArrayList<HighwayCameraListDataModel> dataModels;
     private int side = 100;
-    private HighwayListCustomAdapter adapter;
+    private CameraCursorAdapter adapter;
 
     private EditText inputSearch;
 
@@ -53,58 +59,64 @@ public class MyCameraListActivity extends RootActivity {
 
         dataModels = new ArrayList<>();
 
-        /*
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 1", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 2", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 3", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 4", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 5", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 6", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 7", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 8", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 9", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 10", bMapScaled));
-        dataModels.add(new HighwayCameraListDataModel("Temporary Camera Name 11", bMapScaled));
-        */
 
 
-        OpenHelper helper = new MyCamerasOpenHelper(getApplicationContext());
+        final OpenHelper helper = new CamerasOpenHelper(getApplicationContext());
         Cursor dbData = helper.getRows();
         dbData.moveToFirst();
 
         Log.d(TAG, "rows: " + helper.getNumberOfRows());
 
 
-        while(dbData.moveToNext())
-        {
-            final String name;
-            //name = cursor.get
-            name = dbData.getString(dbData.getColumnIndex("camera_name"));
-            String id   = dbData.getString(dbData.getColumnIndex("_id"));
-            String link = dbData.getString(dbData.getColumnIndex("camera_link"));
-
-            dataModels.add(new HighwayCameraListDataModel(name, bMapScaled, link));
-
-
-            Log.d(TAG, id + "-" + name);
-        }
-
-        dbData.close();
-        adapter = new HighwayListCustomAdapter(dataModels, this);
+        adapter = new CameraCursorAdapter(this,
+                R.layout.highway_camera_list_row_item,
+                null, //helper.getRows(), // dont do this
+                new String[]
+                        {
+                                CamerasOpenHelper.NAME_COLUMN,
+                        },
+                new int[]
+                        {
+                                android.R.id.text1,
+                        }
+        );
 
 
         listView.setAdapter(adapter);
+        listView.setTextFilterEnabled(true);
+
+        adapter.setFilterQueryProvider(new FilterQueryProvider() {
+
+            @Override
+            public Cursor runQuery(CharSequence constraint) {
+
+                String strItemCode = "%" + constraint.toString().toLowerCase() + "%";
+                return helper.getRows("LOWER(camera_name) LIKE ?", new String[] {strItemCode});
+
+            }
+        });
+
+        // use content provider to load data from db
+        final LoaderManager manager = getLoaderManager();
+        manager.initLoader(0, null, new CustomLoaderCallbacks(HighwayCameraListActivityBak.this, adapter, Uri.parse(OpenHelper.URI_BASE + CamerasOpenHelper.TABLE_NAME)));
+
+
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                HighwayCameraListDataModel dataModel = dataModels.get(position);
-                Snackbar.make(view, dataModel.getCameraName(), Snackbar.LENGTH_LONG)
+
+                Cursor c = ((SimpleCursorAdapter)listView.getAdapter()).getCursor();
+                c.moveToPosition(position);
+
+                //HighwayCameraListDataModel dataModel = dataModels.get(position);
+                //HighwayCameraListDataModel dataModel = new HighwayCameraListDataModel(c.getString(c.getColumnIndex("camera_name")), )
+                Snackbar.make(view, ((TextView)view.findViewById(R.id.camera_name)).getText().toString(), Snackbar.LENGTH_LONG)
                         .setAction("No action", null).show();
                 final Intent intent;
                 intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
                 //intent.putExtra("name", dataModel.getCameraName());
                 //intent.putExtra("link", dataModel.getImageLink());
-                intent.putExtra("cam_no", position+1); // TODO should be replaced with finding by ID rather than hoping the order is the same as this cursor...
+                intent.putExtra("cam_id", c.getInt(c.getColumnIndex("_id"))); // TODO should be replaced with finding by ID rather than hoping the order is the same as this cursor...
                 startActivity(intent);
             }
         });
@@ -118,11 +130,19 @@ public class MyCameraListActivity extends RootActivity {
             @Override
             public void onTextChanged(CharSequence cs, int arg1, int arg2, int arg3) {
                 // When user changed the Text
-                HighwayListCustomAdapter adapter = MyCameraListActivity.this.adapter;
+
+                adapter.getFilter().filter(cs.toString());
+                adapter.notifyDataSetChanged();
+
+                /*
+                HighwayListCustomAdapter adapter = HighwayCameraListActivity.this.adapter;
                 adapter.getFilter().filter(cs);
                 listView.setAdapter(adapter);
                 listView.invalidateViews();
+                */
+
                 //listView.setAdapter();
+                Log.d(TAG, "text changed!");
             }
 
             @Override

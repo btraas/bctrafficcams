@@ -4,6 +4,7 @@ package gitpushforce.comp3717.bcit.ca.bctrafficcams;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import org.json.JSONArray;
@@ -13,9 +14,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.net.URL;
+import java.net.URLConnection;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -119,7 +126,10 @@ public final class DatabaseBuilder {
 
             String[] firstLine = reader.readNext();
 
+
             String[] nextLine;
+
+            ArrayList<JSONObject> objects = new ArrayList<>();
             while ((nextLine = reader.readNext()) != null) {
                 Log.d(TAG, "Camera "+(++cameraCount));
 
@@ -131,9 +141,11 @@ public final class DatabaseBuilder {
                     arr.put("_id", nextLine[WEBCAMS_COLUMN_ID]);
                     arr.put("camera_name", nextLine[WEBCAMS_COLUMN_NAME]);
                     arr.put("camera_link", nextLine[WEBCAMS_COLUMN_IMAGE_LINK]);
+                    arr.put("thumbnail_link", nextLine[WEBCAMS_COLUMN_THUMBNAIL_LINK]);
                     arr.put("latitude", nextLine[WEBCAMS_COLUMN_LATITUDE]);
                     arr.put("longitude", nextLine[WEBCAMS_COLUMN_LONGITUDE]);
 
+                    objects.add(arr);
                     helper.upsertJSON("_id = ?", new String[] {nextLine[WEBCAMS_COLUMN_ID]}, arr);
 
                 } catch (JSONException e) {
@@ -143,6 +155,9 @@ public final class DatabaseBuilder {
 
 
             }
+
+            ThumbnailsTask t = new ThumbnailsTask(context);
+            t.execute(objects.toArray(new JSONObject[objects.size()]));
 
         } catch (IOException e) {
             throw new IOException("Unable to connect to " + DATABC_DOMAIN);
@@ -176,9 +191,74 @@ public final class DatabaseBuilder {
     }
 
 
+    public static class ThumbnailsTask extends AsyncTask<JSONObject, Void, Void> {
+
+        private Context context;
+
+        public ThumbnailsTask(Context ctx) {
+            this.context = ctx;
+        }
+
+        @Override
+        protected Void doInBackground(JSONObject... objects) {
+            OpenHelper o = new CamerasOpenHelper(context);
+            Cursor c = o.getRows("camera_thumbnail = NULL");
+            OpenHelper.cursorJSONArray(c);
+            c.close();
+
+            JSONArray save = new JSONArray();
+
+            for (JSONObject object : objects) {
+                try {
+                    Log.d(TAG, "downloading image " + object.getInt("_id"));
+                    object.put("camera_thumbnail", getThumbnailImage(object.getString("thumbnail_link")));
+                    save.put(object);
+                } catch (JSONException e) {
+
+                }
+            }
+            OpenHelper o2 = new CamerasOpenHelper(context);
+            for (int i = 0; i < save.length(); ++i) {
+                try {
+                    JSONObject o3 = save.getJSONObject(i);
+                    o2.updateJSON("_id = ?", new String[]{"" + o3.getInt("_id")}, o3);
+                } catch (JSONException e) {
+
+                }
+            }
+
+            return null;
+        }
+    }
+
+    //http://stackoverflow.com/questions/7512019/how-to-save-images-into-database
+    //http://stackoverflow.com/questions/32138739/bytearraybuffer-missing-in-sdk23
+    private static byte[] getThumbnailImage(String url){
+        try {
+            URL imageUrl = new URL(url);
+            URLConnection ucon = imageUrl.openConnection();
+
+            InputStream is = ucon.getInputStream();
+            //BufferedInputStream bis = new BufferedInputStream(is);
+
+            BufferedInputStream bis = new BufferedInputStream(is);
+            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+            //We create an array of bytes
+            byte[] data = new byte[50];
+            int current = 0;
+
+            while((current = bis.read(data,0,data.length)) != -1){
+                buffer.write(data,0,current);
+            }
+            return buffer.toByteArray();
 
 
+        } catch (Exception e) {
+            Log.d("ImageManager", "Error: " + e.toString());
+            return null;
+        }
 
+    }
 
 
 }

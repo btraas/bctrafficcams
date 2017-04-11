@@ -476,8 +476,10 @@ public abstract class OpenHelper
     }
 
 
+    // of course only works for text based data
     public static JSONObject cursorJSONObject(Cursor cursor) {
         JSONObject result = new JSONObject();
+        if(cursor == null || cursor.getCount() < 1) return new JSONObject();
         for(int i=0; i<cursor.getColumnCount(); ++i) {
             try {
                 result.put(cursor.getColumnName(i), cursor.getString(i));
