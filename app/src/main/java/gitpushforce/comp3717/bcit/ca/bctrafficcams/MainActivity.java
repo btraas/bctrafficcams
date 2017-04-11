@@ -17,6 +17,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import gitpushforce.comp3717.bcit.ca.bctrafficcams.databases.OpenHelper;
 
 
@@ -97,33 +100,6 @@ public class MainActivity extends RootActivity implements OnMapReadyCallback {
         // Add a marker in Sydney and move the camera
         LatLng start = new LatLng(49.2189, -122.9177);
 
-        //(new LoadPinsJob(mMap)).execute();
-
-        /*
-            TODO TOO SLOW
-
-        Cursor cameras = openHelper.getRows(getApplicationContext());
-
-        cameras.moveToFirst();
-        int failed = 0;
-        while(cameras.moveToNext())
-        {
-            try {
-                String name = cameras.getString(cameras.getColumnIndex("camera_name"));
-                LatLng location = getLocationFromAddress(name);
-                mMap.addMarker(new MarkerOptions().position(location).title(name));
-            } catch(IOException e) {
-                // do nothing
-                failed++;
-            }
-        }
-        Log.e(TAG,"failed cameras: "+failed);
-        */
-
-        //mMap.addMarker(new MarkerOptions().position(start).title("New West"));
-
-
-
         mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
 
             @Override
@@ -140,7 +116,15 @@ public class MainActivity extends RootActivity implements OnMapReadyCallback {
                 intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
                 //intent.putExtra("name", arg0.getTitle());
                 //intent.putExtra("link", link);
-                intent.putExtra("cam_json", OpenHelper.cursorJSONObject(c).toString()); // TODO BUG FOR REMOVED CAMERAS ?? _id won't equal cam no...
+
+                JSONObject o = OpenHelper.cursorJSONObject(c);
+                try {
+                    intent.putExtra("cam_id", o.getInt("_id"));
+                } catch (JSONException e) {
+                    intent.putExtra("cam_id", 1);
+                }
+                intent.putExtra("cam_json", o.toString());
+                //intent.putExtra("cam_id", c.getInt(c.getColumnIndex("_id")));
 
                 c.close();
                 openHelper.close();

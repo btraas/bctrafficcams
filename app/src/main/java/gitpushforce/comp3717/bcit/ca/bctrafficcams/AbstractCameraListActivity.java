@@ -112,7 +112,7 @@ public abstract class AbstractCameraListActivity extends RootActivity implements
                 intent = new Intent(getApplicationContext(), HighwayCameraViewActivity.class);
                 //intent.putExtra("name", dataModel.getCameraName());
                 //intent.putExtra("link", dataModel.getImageLink());
-                intent.putExtra("cam_id", c.getInt(c.getColumnIndex("_id"))); // TODO should be replaced with finding by ID rather than hoping the order is the same as this cursor...
+                intent.putExtra("cam_id", c.getInt(c.getColumnIndex("_id")));
                 startActivity(intent);
             }
         });
