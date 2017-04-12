@@ -29,7 +29,7 @@ public class RoutesActivity extends RootActivity implements AdapterView.OnItemCl
         //setContentView(R.layout.activity_routes);
         //getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        initDrawer(R.id.nav_routes);
+        //initDrawer(R.id.nav_routes);
 
         listView = (ListView)findViewById(R.id.route_list);
         routes = new ArrayList<>();

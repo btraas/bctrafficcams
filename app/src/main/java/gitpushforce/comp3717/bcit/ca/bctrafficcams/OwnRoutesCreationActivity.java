@@ -19,7 +19,7 @@ public class OwnRoutesCreationActivity extends RootActivity {
        // returnButton = (ImageButton)findViewById(R.id.returnButton);
 
         // initialize drawer with this item selected
-        initDrawer(R.id.nav_newroutes);
+        //initDrawer(R.id.nav_newroutes);
 
         Log.d(TAG, "onCreate end");
     }

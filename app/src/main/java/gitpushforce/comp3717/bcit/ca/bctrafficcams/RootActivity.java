@@ -205,12 +205,15 @@ public abstract class RootActivity extends AppBarActivity implements NavigationV
             case R.id.nav_my_cameras  :
                 startActivityIfNotThis(SavedCamerasListActivity.class);
                 break;
+            /*
             case R.id.nav_routes  :
+
                 startActivityIfNotThis(RoutesActivity.class);
                 break;
             case R.id.nav_newroutes :
                 startActivityIfNotThis(OwnRoutesCreationActivity.class);
                 break;
+                */
             case R.id.nav_download :
                 Toast.makeText(getApplicationContext(), "Downloading data...", Toast.LENGTH_LONG).show();
                 (new SyncJob()).execute();
